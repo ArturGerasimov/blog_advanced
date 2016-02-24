@@ -1,14 +1,13 @@
 <?php
-
 namespace backend\controllers;
-
 use Yii;
 use common\models\Comment;
 use common\models\CommentSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-
+use yii\filters\AccessControl;
+use yii\helpers\Url;
 /**
  * CommentController implements the CRUD actions for Comment model.
  */
@@ -17,6 +16,15 @@ class CommentController extends Controller
     public function behaviors()
     {
         return [
+            'access' => [
+                    'class' => AccessControl::className(),
+                    'rules' => [
+                        [
+                            'allow' => true,
+                            'roles' => ['@'],
+                        ],
+                    ],
+                ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -25,7 +33,6 @@ class CommentController extends Controller
             ],
         ];
     }
-
     /**
      * Lists all Comment models.
      * @return mixed
@@ -34,13 +41,11 @@ class CommentController extends Controller
     {
         $searchModel = new CommentSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
-
     /**
      * Displays a single Comment model.
      * @param integer $id
@@ -52,7 +57,6 @@ class CommentController extends Controller
             'model' => $this->findModel($id),
         ]);
     }
-
     /**
      * Creates a new Comment model.
      * If creation is successful, the browser will be redirected to the 'view' page.
@@ -61,7 +65,6 @@ class CommentController extends Controller
     public function actionCreate()
     {
         $model = new Comment();
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
@@ -70,7 +73,6 @@ class CommentController extends Controller
             ]);
         }
     }
-
     /**
      * Updates an existing Comment model.
      * If update is successful, the browser will be redirected to the 'view' page.
@@ -80,7 +82,6 @@ class CommentController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
         } else {
@@ -89,7 +90,6 @@ class CommentController extends Controller
             ]);
         }
     }
-
     /**
      * Deletes an existing Comment model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
@@ -99,10 +99,17 @@ class CommentController extends Controller
     public function actionDelete($id)
     {
         $this->findModel($id)->delete();
-
         return $this->redirect(['index']);
     }
-
+    public function actionApprove($id)
+    {
+        $comment=$this->findModel($id);
+        $comment->approve();
+        return $this->redirect(['index']);
+        //Yii::$app->response->redirect(array('index'));
+        // Url::toRoute([Url::previous()]);
+        //Yii::$app->request->referrer;
+    }
     /**
      * Finds the Comment model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.

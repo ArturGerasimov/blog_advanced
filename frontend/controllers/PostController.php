@@ -5,15 +5,19 @@ namespace frontend\controllers;
 use Yii;
 use common\models\Post;
 use common\models\PostSearch;
+use common\models\Comment;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+
 
 /**
  * PostController implements the CRUD actions for Post model.
  */
 class PostController extends Controller
 {
+    public $layout='column2';
+
     public function behaviors()
     {
         return [
@@ -48,60 +52,25 @@ class PostController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new Post model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new Post();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Updates an existing Post model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
+        $this->layout='column1';
         $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
-        }
+        //$comment=$this->newComment($model);
+        $comment=new Comment();
+        if($comment->load($_POST) && $model->addComment($comment))
+            {
+                if($comment->status==Comment::STATUS_PENDING){
+                    Yii::$app->getSession()->setFlash('warning','Спасибо! Ваш комментарий будет опублиикован после подтверждения');
+                }
+                return $this->refresh();
+            }
+        return $this->render('view',array(
+            'model'=>$model,
+            'comment'=>$comment,
+        ));
     }
+  
 
-    /**
-     * Deletes an existing Post model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
+   
 
     /**
      * Finds the Post model based on its primary key value.
@@ -112,10 +81,39 @@ class PostController extends Controller
      */
     protected function findModel($id)
     {
-        if (($model = Post::findOne($id)) !== null) {
+        if (
+                ($model = Post::find()->where(['id'=>$id])->
+                andWhere(['IN','status', [Post::STATUS_PUBLISHED , Post::STATUS_ARCHIVED]])->
+                one()) !== null
+            ) 
+        {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+   protected function newComment($post)
+    {
+        $comment=new Comment();
+        if($comment->load($_POST) && $post->addComment($comment))
+        {
+            if($comment->status==Comment::STATUS_PENDING){
+                Yii::$app->getSession()->setFlash('commentSubmitted','Thank you for your comment. Your comment will be posted once it is approved.');
+                $s=Yii::$app->session->getFlash('commentSubmitted');
+                print('<pre>'); var_dump($s);print('<pre>');die; 
+            }
+            //return Yii::$app->response->refresh();
+            return $this->refresh();
+
+            //$this->redirect(\Yii::$app->request->getReferrer());
+        }
+        return $comment;
+    }
+
+     public function actionTest()
+    {
+        $t=Yii::$app->params['commentNeedApproval'];
+        var_dump($t);
     }
 }

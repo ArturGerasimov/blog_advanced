@@ -1,6 +1,7 @@
 <?php
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\grid\GridView;
 
 /* @var $this yii\web\View */
@@ -15,27 +16,41 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
-    <p>
-        <?= Html::a('Create Comment', ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
-
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
-            'id',
+            [
+                'attribute'=>'id',
+                'contentOptions'=>['style'=>'width:64px;'],
+            ],
             'content:ntext',
-            'status',
+           [
+                'attribute'=>'status',
+                'format'=>'raw',
+                'value'=>function ($model){
+                    $text=\common\models\Lookup::item('CommentStatus',$model->status);
+                    $url=Url::to(["comment/approve","id"=>$model->id]);
+                    Url::remember();
+                    return $text=='Pending Approval'?Html::a($text,$url):$text;
+                },
+                'contentOptions'=>['style'=>'width:136px;'],               
+            ],
             'create_time:datetime',
             'author',
             // 'email:email',
             // 'url:url',
             // 'post_id',
 
-            ['class' => 'yii\grid\ActionColumn'],
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header' => 'Actions',
+                'contentOptions'=>['style'=>'width:96px;'],
+            ],
         ],
     ]); ?>
+
 
 </div>

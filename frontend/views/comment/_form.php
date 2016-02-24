@@ -1,35 +1,27 @@
 <?php
-
-use yii\helpers\Html;
-use yii\widgets\ActiveForm;
-
-/* @var $this yii\web\View */
-/* @var $model common\models\Comment */
-/* @var $form yii\widgets\ActiveForm */
+use \yii\helpers\Html;
+use \yii\widgets\ActiveForm;
 ?>
 
-<div class="comment-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+<div class="panel panel-success">
+	<div class="panel-heading">
+		<h3 class="panel-title">Leave a Comment</h3>
+	</div>
+	<div class="panel-body">
+		<?php $form = ActiveForm::begin(); ?>
+		<?php echo $form->field($model,'author')->textInput(); ?>
+		<?php echo $form->field($model,'email')->textInput(); ?>
+		<?php echo $form->field($model,'url')->textInput(); ?>
+		<?php echo $form->field($model,'content')->textArea(array('rows'=>6, 'cols'=>50)); ?>
+		<div class="form-actions text-center">
+			<?php echo Html::submitButton('Save',['class' => 'btn btn-success btn-block']); ?>
+		</div>
 
-    <?= $form->field($model, 'content')->textarea(['rows' => 6]) ?>
+		<?php ActiveForm::end(); ?>
 
-    <?= $form->field($model, 'status')->textInput() ?>
-
-    <?= $form->field($model, 'create_time')->textInput() ?>
-
-    <?= $form->field($model, 'author')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'email')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'url')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'post_id')->textInput() ?>
-
-    <div class="form-group">
-        <?= Html::submitButton($model->isNewRecord ? 'Create' : 'Update', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-    </div>
-
-    <?php ActiveForm::end(); ?>
+	</div>
 
 </div>
+
+

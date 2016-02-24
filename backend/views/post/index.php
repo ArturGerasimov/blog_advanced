@@ -29,7 +29,12 @@ $this->params['breadcrumbs'][] = $this->title;
             'title',
             'content:ntext',
             'tags:ntext',
-            'status',
+            [
+                'attribute'=>'status',
+                'value'=>function($model){
+                    return \common\models\Lookup::item('PostStatus',$model->status);
+                }
+            ],
             // 'create_time:datetime',
             // 'update_time:datetime',
             // 'author_id',

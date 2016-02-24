@@ -41,14 +41,14 @@ class PostSearch extends Post
      */
     public function search($params)
     {
-        $query = Post::find();
+
+        $query = Post::find()->orderBy('update_time DESC');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
         ]);
-
+        
         $this->load($params);
-
         if (!$this->validate()) {
             // uncomment the following line if you do not want to return any records when validation fails
             // $query->where('0=1');
@@ -66,6 +66,9 @@ class PostSearch extends Post
         $query->andFilterWhere(['like', 'title', $this->title])
             ->andFilterWhere(['like', 'content', $this->content])
             ->andFilterWhere(['like', 'tags', $this->tags]);
+
+        if (Yii::$app->user->isGuest)
+            $query->andFilterWhere(['status'=>Post::STATUS_PUBLISHED]);
 
         return $dataProvider;
     }

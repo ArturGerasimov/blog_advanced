@@ -1,6 +1,5 @@
 <?php
 namespace common\models;
-
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
@@ -23,8 +22,12 @@ use yii\web\IdentityInterface;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
-    const STATUS_DELETED = 0;
-    const STATUS_ACTIVE = 10;
+    const STATUS_DELETED = 0; // заблокированный !
+    const STATUS_NOT_ACTIVE =1; //не активированный пользователь
+    const STATUS_ACTIVE = 10; // актвированный
+
+    // $ которую буду получать из LoginForm & RegForm
+    public $password;
 
     /**
      * @inheritdoc
@@ -34,9 +37,44 @@ class User extends ActiveRecord implements IdentityInterface
         return '{{%user}}';
     }
 
-    /**
-     * @inheritdoc
-     */
+
+
+    /* Правила для валидации добавляются в  rules() */
+    public function rules()
+    {
+        return [
+
+            /*['status', 'default', 'value' => self::STATUS_ACTIVE],
+            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
+            */
+
+            //применяет фильтры к втрибутам, 'filter' => 'trim'удаляет пробелы вокруг полей
+            [['username', 'email', 'password'], 'filter', 'filter' => 'trim'], 
+            [['username', 'email', 'status'], 'required'],// обяз. заполнение
+            ['email', 'email'], 
+            ['username', 'string', 'min' => 2, 'max' => 255], 
+            ['password', 'required', 'on' => 'create'], // если сценарий create то доб. нов. пользв.
+            ['username', 'unique', 'message' => 'Занято.'],
+            ['email', 'unique', 'message' => 'Занято.'],
+        ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'username' => 'Username',
+            'email' => 'Email',
+            'password' => 'Password Hash',
+            'status' => 'Status',
+            'auth_key' => 'Auth key',
+            'crated_at' => 'Created At',
+            'updated_at' => 'Updated At',
+        ];
+    }
+
+    /* Поведения*/
+
     public function behaviors()
     {
         return [
@@ -44,23 +82,44 @@ class User extends ActiveRecord implements IdentityInterface
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function rules()
+    /* Поиск */
+
+    public static function findByUsername($username)
     {
-        return [
-            ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_DELETED]],
-        ];
+        return static::findOne([
+            'username' => $username,
+            'status' => self::STATUS_ACTIVE
+        ]);
     }
 
+     /* Хелперы */
+
+    public function validatePassword($password)
+    {
+        return Yii::$app->security->validatePassword($password, $this->password_hash);
+    }
+    
+    public function setPassword($password)
+    {
+        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+    }
+    
+    public function generateAuthKey()
+    {
+        $this->auth_key = Yii::$app->security->generateRandomString();
+    }
+
+
     /**
-     * @inheritdoc
+     * Аутентификация пользователей
      */
+
     public static function findIdentity($id)
     {
-        return static::findOne(['id' => $id, 'status' => self::STATUS_ACTIVE]);
+        return static::findOne([
+            'id' => $id,
+             'status' => self::STATUS_ACTIVE
+        ]);
     }
 
     /**
@@ -72,22 +131,12 @@ class User extends ActiveRecord implements IdentityInterface
     }
 
     /**
-     * Finds user by username
-     *
-     * @param string $username
-     * @return static|null
-     */
-    public static function findByUsername($username)
-    {
-        return static::findOne(['username' => $username, 'status' => self::STATUS_ACTIVE]);
-    }
-
-    /**
      * Finds user by password reset token
      *
      * @param string $token password reset token
      * @return static|null
      */
+
     public static function findByPasswordResetToken($token)
     {
         if (!static::isPasswordResetTokenValid($token)) {
@@ -139,35 +188,6 @@ class User extends ActiveRecord implements IdentityInterface
     public function validateAuthKey($authKey)
     {
         return $this->getAuthKey() === $authKey;
-    }
-
-    /**
-     * Validates password
-     *
-     * @param string $password password to validate
-     * @return boolean if password provided is valid for current user
-     */
-    public function validatePassword($password)
-    {
-        return Yii::$app->security->validatePassword($password, $this->password_hash);
-    }
-
-    /**
-     * Generates password hash from password and sets it to the model
-     *
-     * @param string $password
-     */
-    public function setPassword($password)
-    {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
-    }
-
-    /**
-     * Generates "remember me" authentication key
-     */
-    public function generateAuthKey()
-    {
-        $this->auth_key = Yii::$app->security->generateRandomString();
     }
 
     /**

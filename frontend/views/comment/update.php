@@ -1,21 +1,13 @@
 <?php
-
-use yii\helpers\Html;
-
-/* @var $this yii\web\View */
-/* @var $model common\models\Comment */
-
-$this->title = 'Update Comment: ' . ' ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Comments', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->params['breadcrumbs']=array(
+	array(
+		'label'=>'Comments',
+		'url'=>array('index')
+	),
+	'Update Comment #'.$model->id,
+);
 ?>
-<div class="comment-update">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+<h1>Update Comment #<?php echo $model->id; ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
-
-</div>
+<?php echo $this->context->renderPartial('_form', array('model'=>$model)); ?>

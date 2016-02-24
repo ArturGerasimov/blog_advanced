@@ -1,12 +1,11 @@
 <?php
 namespace backend\controllers;
-
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use common\models\LoginForm;
 use yii\filters\VerbFilter;
-
+use common\models\User;
 /**
  * Site controller
  */
@@ -44,6 +43,7 @@ class SiteController extends Controller
     /**
      * @inheritdoc
      */
+    
     public function actions()
     {
         return [
@@ -52,7 +52,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
     public function actionIndex()
     {
         return $this->render('index');
@@ -60,11 +59,14 @@ class SiteController extends Controller
 
     public function actionLogin()
     {
+        //проверка: если гость - то выполнить аутентификацию 
         if (!\Yii::$app->user->isGuest) {
             return $this->goHome();
         }
 
+
         $model = new LoginForm();
+
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         } else {
@@ -73,11 +75,9 @@ class SiteController extends Controller
             ]);
         }
     }
-
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 }

@@ -32,10 +32,17 @@ $this->params['breadcrumbs'][] = $this->title;
             'title',
             'content:ntext',
             'tags:ntext',
-            'status',
+            [
+                'attribute'=>'status',
+                'value'=>\common\models\Lookup::item('PostStatus',$model->status),
+            ],
             'create_time:datetime',
             'update_time:datetime',
-            'author_id',
+            [
+                'attribute'=>'author_id',
+                'label'=>'Author',
+                'value' => $model->author->username,
+            ]
         ],
     ]) ?>
 

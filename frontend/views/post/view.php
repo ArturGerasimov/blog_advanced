@@ -11,32 +11,29 @@ $this->params['breadcrumbs'][] = ['label' => 'Posts', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="post-view">
+   <?php  echo $this->context->renderPartial('_item', array(
+    'model'=>$model
+));?>
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <div id="comments" class="row-fluid">
+    <?php
+    if($model->commentCount>=1): ?>
+        <h4>
+            <?php echo $model->commentCount>1 ? $model->commentCount . ' comments' : 'One comment'; ?>
+        </h4>
+    
+        <?php echo $this->context->renderPartial('_comments',array(
+            'post'=>$model,
+            'comments'=>$model->comments,
+        )); ?>
+    <?php endif; ?>
 
-    <p>
-        <?= Html::a('Update', ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a('Delete', ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => 'Are you sure you want to delete this item?',
-                'method' => 'post',
-            ],
-        ]) ?>
-    </p>
+        <?php echo $this->context->renderPartial('/comment/_form',array(
+            'model'=>$comment,
+        )); ?>
+   
 
-    <?= DetailView::widget([
-        'model' => $model,
-        'attributes' => [
-            'id',
-            'title',
-            'content:ntext',
-            'tags:ntext',
-            'status',
-            'create_time:datetime',
-            'update_time:datetime',
-            'author_id',
-        ],
-    ]) ?>
+
+</div><!-- comments -->
 
 </div>
